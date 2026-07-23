@@ -1,8 +1,9 @@
 from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
 from langchain_core.documents import Document
 from typing import List
+import os
 
 
 # Extract Data From the PDF File
@@ -58,7 +59,8 @@ def text_split(extracted_data):
 # Download the Embeddings from HuggingFace
 def download_hugging_face_embeddings():
 
-    embeddings = HuggingFaceEmbeddings(
+    embeddings = HuggingFaceInferenceAPIEmbeddings(
+        api_key=os.environ.get("HF_TOKEN"),
         model_name="sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
     )
 
