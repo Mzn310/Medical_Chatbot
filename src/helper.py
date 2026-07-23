@@ -1,6 +1,7 @@
 from langchain_community.document_loaders import PyPDFLoader, DirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.embeddings import HuggingFaceInferenceAPIEmbeddings
+from langchain_core.embeddings import Embeddings
+from huggingface_hub import InferenceClient
 from langchain_core.documents import Document
 from typing import List
 import os
@@ -18,6 +19,15 @@ def load_pdf_file(data):
 
     return documents
 
+class HFRouterEmbeddings(Embeddings):
+    def __init__(self, model_name: str, api_key: str):
+        self.client = InferenceClient(model=model_name, token=api_key)
+
+    def embed_documents(self, texts: List[str]) -> List[List[float]]:
+        return [self.client.feature_extraction(text).tolist() for text in texts]
+
+    def embed_query(self, text: str) -> List[float]:
+        return self.client.feature_extraction(text).tolist()
 
 
 def filter_to_minimal_docs(docs: List[Document]) -> List[Document]:
@@ -59,9 +69,9 @@ def text_split(extracted_data):
 # Download the Embeddings from HuggingFace
 def download_hugging_face_embeddings():
 
-    embeddings = HuggingFaceInferenceAPIEmbeddings(
-        api_key=os.environ.get("HF_TOKEN"),
-        model_name="sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
+    embeddings = HFRouterEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2",
+        api_key=os.environ.get("HF_TOKEN")
     )
 
     return embeddings
